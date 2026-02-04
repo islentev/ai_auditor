@@ -62,54 +62,20 @@ with st.sidebar:
 col1, col2 = st.columns(2)
 
 with col1:
-    contract_file = st.file_uploader("📄 Загрузите КОНТРАКТ (PDF/DOCX)", type=['pdf', 'docx'], key="contract_loader")
+    contract_file = st.file_uploader("📄 Загрузите КОНТРАКТ (PDF/DOCX)", type=['pdf', 'docx'], key="contract_stable")
     if contract_file:
-        st.info(f"📂 Файл: {contract_file.name}")
-        
-        # Создаем контейнер для статус-бара, чтобы он не дублировался
-        container = st.container()
-        
-        # Уникальный ключ для сессии, привязанный к конкретному файлу
-        if f"loaded_{contract_file.name}" not in st.session_state:
-            with container:
-                bar = st.progress(0)
-                status_text = st.empty()
-                for p in range(101):
-                    time.sleep(0.005)
-                    bar.progress(p)
-                    status_text.caption(f"Загрузка: {p}%")
-                st.session_state[f"loaded_{contract_file.name}"] = True
-                status_text.caption("✅ Загружено 100%")
-        else:
-            # Если файл уже в памяти, просто пишем, что он готов
-            container.caption("✅ Файл готов к работе (100%)")
+        st.info(f"📁 Файл: {contract_file.name}")
 
 with col2:
-    report_file = st.file_uploader("📝 Загрузите ЧЕРНОВИК ОТЧЕТА (PDF/DOCX)", type=['pdf', 'docx'], key="report_loader")
+    report_file = st.file_uploader("📝 Загрузите ЧЕРНОВИК ОТЧЕТА (PDF/DOCX)", type=['pdf', 'docx'], key="report_stable")
     if report_file:
-        st.info(f"📂 Файл: {report_file.name}")
-        
-        container = st.container()
-        
-        if f"loaded_{report_file.name}" not in st.session_state:
-            with container:
-                bar = st.progress(0)
-                status_text = st.empty()
-                for p in range(101):
-                    time.sleep(0.005)
-                    bar.progress(p)
-                    status_text.caption(f"Загрузка: {p}%")
-                st.session_state[f"loaded_{report_file.name}"] = True
-                status_text.caption("✅ Загружено 100%")
-        else:
-            container.caption("✅ Файл готов к работе (100%)")
+        st.info(f"📝 Файл: {report_file.name}")
 
 # --- ЛОГИКА АНАЛИЗА ---
 if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
-    bad_history = load_bad_history() # Загружаем опыт прошлых ошибок
+    bad_history = load_bad_history() 
     if contract_file and report_file:
         try:
-            # Инициализация клиента (исправлено: убрано дублирование и лишний try)
             client = OpenAI(
                 base_url="https://openrouter.ai/api/v1",
                 api_key=api_key_val, 
@@ -118,20 +84,11 @@ if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
             progress_bar = st.progress(0)
             status = st.empty()
 
-            # 1. Чтение файлов с визуальным прогрессом в %
+            # 1. Чтение файлов
             status.info("📂 Шаг 1/4: Чтение и индексация документов...")
-            
-            # Эмуляция загрузки в процентах для пользователя
-            for percent_complete in range(0, 26):
-                time.sleep(0.02)  # Скорость анимации
-                progress_bar.progress(percent_complete)
-                status.info(f"📂 Шаг 1/4: Загрузка и обработка... {percent_complete}%")
-
-            # Само чтение данных
             c_text = extract_text_from_pdf(contract_file) if contract_file.name.endswith('.pdf') else extract_text_from_docx(contract_file)
             r_text = extract_text_from_pdf(report_file) if report_file.name.endswith('.pdf') else extract_text_from_docx(report_file)
             
-            # Доводим до следующего этапа
             progress_bar.progress(25)
 
             # 2. Подготовка промпта
