@@ -1,0 +1,122 @@
+import streamlit as st
+from openai import OpenAI
+from docx import Document
+from io import BytesIO
+import fitz  # PyMuPDF
+import time
+
+# --- НАСТРОЙКА СТРАНИЦЫ ---
+st.set_page_config(page_title="Симулятор Вредного Заказчика", layout="wide", page_icon="🧛")
+
+# --- ФУНКЦИИ ЧТЕНИЯ ФАЙЛОВ ---
+def extract_text_from_pdf(file):
+    doc = fitz.open(stream=file.read(), filetype="pdf")
+    text = ""
+    for i, page in enumerate(doc):
+        text += f"\n[СТРАНИЦА {i+1}]\n{page.get_text()}"
+    return text
+
+def extract_text_from_docx(file):
+    doc = Document(file)
+    text = ""
+    for i, para in enumerate(doc.paragraphs):
+        if para.text.strip():
+            text += f"[Абзац {i+1}] {para.text}\n"
+    return text
+
+# --- ИНТЕРФЕЙС ---
+st.title("🧛 Симулятор Вредного Заказчика (OpenRouter Edition)")
+st.markdown("### Тотальный аудит соответствия Отчета и Контракта")
+
+with st.sidebar:
+    st.header("Настройки")
+    # Используем ваш ключ по умолчанию, но оставляем поле для ввода
+    api_key = st.text_input("OpenRouter API Key:", value="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", type="password")
+    selected_model = "google/gemini-2.5-flash"
+    st.info(f"Модель: {selected_model}")
+
+col1, col2 = st.columns(2)
+with col1:
+    contract_file = st.file_uploader("📄 Загрузите КОНТРАКТ", type=['pdf', 'docx'])
+with col2:
+    report_file = st.file_uploader("📝 Загрузите ЧЕРНОВИК ОТЧЕТА", type=['pdf', 'docx'])
+
+# --- ЛОГИКА АНАЛИЗА ---
+if st.button("🚀 ЗАПУСТИТЬ ПРОВЕРКУ"):
+    if not api_key:
+        st.error("Ошибка: Введите API ключ в боковой панели!")
+    elif contract_file and report_file:
+        try:
+            # Инициализация клиента OpenRouter
+            client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=api_key,
+            )
+
+            progress_bar = st.progress(0)
+            status = st.empty()
+
+            # 1. Чтение
+            status.info("📂 Шаг 1/4: Чтение и индексация документов...")
+            c_text = extract_text_from_pdf(contract_file) if contract_file.name.endswith('.pdf') else extract_text_from_docx(contract_file)
+            r_text = extract_text_from_pdf(report_file) if report_file.name.endswith('.pdf') else extract_text_from_docx(report_file)
+            progress_bar.progress(25)
+            time.sleep(1)
+
+            # 2. Подготовка промпта
+            status.info("⚖️ Шаг 2/4: Сверка юридических условий и ТЗ...")
+            system_prompt = """
+            Ты — Главный инспектор по приемке госконтрактов. Твоя цель — найти ПОВОД ДЛЯ ОТКАЗА в приемке.
+            Твои задачи:
+            1. Смысловой аудит: Сверь требования Контракта с результатами в Отчете.
+            2. Ошибки: Найди орфографические, пунктуационные и фактические ошибки.
+            3. Локализация: ОБЯЗАТЕЛЬНО указывай СТРАНИЦУ или НОМЕР АБЗАЦА для каждой найденной проблемы.
+            4. Тон: Сухой, бюрократический, придирчивый.
+            """
+            
+            user_content = f"КОНТРАКТ (Требования):\n{c_text[:10000]}\n\nОТЧЕТ (Результат):\n{r_text[:10000]}"
+            progress_bar.progress(50)
+
+            # 3. Запрос к ИИ
+            status.info("🧠 Шаг 3/4: Работает Gemini 2.5 Flash...")
+            response = client.chat.completions.create(
+                model=selected_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content}
+                ],
+                max_tokens=4000
+            )
+            
+            result_text = response.choices[0].message.content
+            progress_bar.progress(85)
+
+            # 4. Вывод результата
+            status.success("✅ Шаг 4/4: Анализ завершен!")
+            progress_bar.progress(100)
+            
+            st.subheader("📋 Протокол выявленных несоответствий")
+            st.markdown(result_text)
+
+            # --- ГЕНЕРАЦИЯ WORD ---
+            def create_docx(text):
+                doc = Document()
+                doc.add_heading('ПРОТОКОЛ НЕСООТВЕТСТВИЙ', 0)
+                doc.add_paragraph(text)
+                buffer = BytesIO()
+                doc.save(buffer)
+                buffer.seek(0)
+                return buffer
+
+            st.divider()
+            st.download_button(
+                label="📥 Скачать протокол в Word",
+                data=create_docx(result_text),
+                file_name="Audit_Report.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
+
+        except Exception as e:
+            st.error(f"Произошла ошибка: {str(e)}")
+    else:
+        st.warning("Пожалуйста, загрузите оба файла для сравнения.")
