@@ -79,10 +79,20 @@ if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
             progress_bar = st.progress(0)
             status = st.empty()
 
-            # 1. Чтение файлов
+            # 1. Чтение файлов с визуальным прогрессом в %
             status.info("📂 Шаг 1/4: Чтение и индексация документов...")
+            
+            # Эмуляция загрузки в процентах для пользователя
+            for percent_complete in range(0, 26):
+                time.sleep(0.02)  # Скорость анимации
+                progress_bar.progress(percent_complete)
+                status.info(f"📂 Шаг 1/4: Загрузка и обработка... {percent_complete}%")
+
+            # Само чтение данных
             c_text = extract_text_from_pdf(contract_file) if contract_file.name.endswith('.pdf') else extract_text_from_docx(contract_file)
             r_text = extract_text_from_pdf(report_file) if report_file.name.endswith('.pdf') else extract_text_from_docx(report_file)
+            
+            # Доводим до следующего этапа
             progress_bar.progress(25)
 
             # 2. Подготовка промпта
@@ -133,4 +143,3 @@ if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
             st.error(f"⚠️ Произошла ошибка: {str(e)}")
     else:
         st.warning("⚠️ Пожалуйста, загрузите оба файла для начала сравнения.")
-
