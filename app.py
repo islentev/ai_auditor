@@ -62,14 +62,10 @@ with st.sidebar:
 col1, col2 = st.columns(2)
 
 with col1:
-    contract_file = st.file_uploader("📄 Загрузите КОНТРАКТ (PDF/DOCX)", type=['pdf', 'docx'], key="contract_stable")
-    if contract_file:
-        st.info(f"📁 Файл: {contract_file.name}")
+    contract_file = st.file_uploader("📄 Загрузите КОНТРАКТ (PDF/DOCX)", type=['pdf', 'docx'], key="c_stable")
 
 with col2:
-    report_file = st.file_uploader("📝 Загрузите ЧЕРНОВИК ОТЧЕТА (PDF/DOCX)", type=['pdf', 'docx'], key="report_stable")
-    if report_file:
-        st.info(f"📝 Файл: {report_file.name}")
+    report_file = st.file_uploader("📝 Загрузите ЧЕРНОВИК ОТЧЕТА (PDF/DOCX)", type=['pdf', 'docx'], key="r_stable")
 
 # --- ЛОГИКА АНАЛИЗА ---
 if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
