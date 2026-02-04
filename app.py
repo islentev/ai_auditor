@@ -64,38 +64,45 @@ col1, col2 = st.columns(2)
 with col1:
     contract_file = st.file_uploader("📄 Загрузите КОНТРАКТ (PDF/DOCX)", type=['pdf', 'docx'], key="contract_loader")
     if contract_file:
-        # Отображение названия файла с переносом текста
         st.info(f"📂 Файл: {contract_file.name}")
         
-        # Индивидуальный прогресс-бар под файлом
-        progress_key = f"prog_{contract_file.name}"
-        if progress_key not in st.session_state:
-            bar = st.progress(0)
-            percent_text = st.empty()
-            for p in range(101):
-                time.sleep(0.005)
-                bar.progress(p)
-                percent_text.caption(f"Загрузка: {p}%")
-            st.session_state[progress_key] = True
-            percent_text.caption("✅ Загружено 100%")
+        # Создаем контейнер для статус-бара, чтобы он не дублировался
+        container = st.container()
+        
+        # Уникальный ключ для сессии, привязанный к конкретному файлу
+        if f"loaded_{contract_file.name}" not in st.session_state:
+            with container:
+                bar = st.progress(0)
+                status_text = st.empty()
+                for p in range(101):
+                    time.sleep(0.005)
+                    bar.progress(p)
+                    status_text.caption(f"Загрузка: {p}%")
+                st.session_state[f"loaded_{contract_file.name}"] = True
+                status_text.caption("✅ Загружено 100%")
+        else:
+            # Если файл уже в памяти, просто пишем, что он готов
+            container.caption("✅ Файл готов к работе (100%)")
 
 with col2:
     report_file = st.file_uploader("📝 Загрузите ЧЕРНОВИК ОТЧЕТА (PDF/DOCX)", type=['pdf', 'docx'], key="report_loader")
     if report_file:
-        # Отображение названия файла
         st.info(f"📂 Файл: {report_file.name}")
         
-        # Индивидуальный прогресс-бар под файлом
-        progress_key = f"prog_{report_file.name}"
-        if progress_key not in st.session_state:
-            bar = st.progress(0)
-            percent_text = st.empty()
-            for p in range(101):
-                time.sleep(0.005)
-                bar.progress(p)
-                percent_text.caption(f"Загрузка: {p}%")
-            st.session_state[progress_key] = True
-            percent_text.caption("✅ Загружено 100%")
+        container = st.container()
+        
+        if f"loaded_{report_file.name}" not in st.session_state:
+            with container:
+                bar = st.progress(0)
+                status_text = st.empty()
+                for p in range(101):
+                    time.sleep(0.005)
+                    bar.progress(p)
+                    status_text.caption(f"Загрузка: {p}%")
+                st.session_state[f"loaded_{report_file.name}"] = True
+                status_text.caption("✅ Загружено 100%")
+        else:
+            container.caption("✅ Файл готов к работе (100%)")
 
 # --- ЛОГИКА АНАЛИЗА ---
 if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
