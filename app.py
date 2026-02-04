@@ -60,10 +60,39 @@ with st.sidebar:
     st.info(f"Модель: {selected_model}")
 
 col1, col2 = st.columns(2)
+
 with col1:
-    contract_file = st.file_uploader("📄 Загрузите КОНТРАКТ (PDF/DOCX)", type=['pdf', 'docx'])
+    contract_file = st.file_uploader("📄 Загрузите КОНТРАКТ (PDF/DOCX)", type=['pdf', 'docx'], key="contract")
+    if contract_file:
+        # 1. Показываем имя файла (автоматический перенос строк)
+        st.info(f"📁 Файл: {contract_file.name}")
+        
+        # 2. Логика полосы загрузки (только при первом появлении файла)
+        if f"loaded_{contract_file.name}" not in st.session_state:
+            c_bar = st.progress(0)
+            c_status = st.empty()
+            for p in range(101):
+                time.sleep(0.005) # Имитация скорости канала
+                c_bar.progress(p)
+                c_status.caption(f"Загрузка: {p}%")
+            st.session_state[f"loaded_{contract_file.name}"] = True
+            c_status.caption("✅ Загружено 100%")
 with col2:
-    report_file = st.file_uploader("📝 Загрузите ЧЕРНОВИК ОТЧЕТА (PDF/DOCX)", type=['pdf', 'docx'])
+    report_file = st.file_uploader("📝 Загрузите ЧЕРНОВИК ОТЧЕТА (PDF/DOCX)", type=['pdf', 'docx'], key="report")
+    if report_file:
+        # 1. Показываем имя файла
+        st.info(f"📁 Файл: {report_file.name}")
+        
+        # 2. Логика полосы загрузки
+        if f"loaded_{report_file.name}" not in st.session_state:
+            r_bar = st.progress(0)
+            r_status = st.empty()
+            for p in range(101):
+                time.sleep(0.005)
+                r_bar.progress(p)
+                r_status.caption(f"Загрузка: {p}%")
+            st.session_state[f"loaded_{report_file.name}"] = True
+            r_status.caption("✅ Загружено 100%")
 
 # --- ЛОГИКА АНАЛИЗА ---
 if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
