@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 from openai import OpenAI
 from docx import Document
@@ -132,3 +133,4 @@ if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
             st.error(f"⚠️ Произошла ошибка: {str(e)}")
     else:
         st.warning("⚠️ Пожалуйста, загрузите оба файла для начала сравнения.")
+
