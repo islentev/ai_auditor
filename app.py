@@ -60,14 +60,15 @@ with col2:
 
 # --- ЛОГИКА АНАЛИЗА ---
 if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
-    if not final_api_key:
-        st.error("❌ Ошибка: API ключ не найден ни в Secrets, ни в поле ввода!")
+    # Проверка теперь не нужна здесь, так как st.stop() в сайдбаре 
+    # не даст нажать кнопку, если ключа нет.
+    if contract_file and report_file:
     elif contract_file and report_file:
         try:
             # Инициализация клиента OpenRouter
             client = OpenAI(
                 base_url="https://openrouter.ai/api/v1",
-                api_key=final_api_key,
+                api_key=api_key=api_key_val,
             )
 
             progress_bar = st.progress(0)
