@@ -80,7 +80,7 @@ if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
                 base_url="https://api.deepseek.com", 
                 api_key=api_key_val, 
             )
-    bad_history = load_bad_history() 
+            bad_history = load_bad_history() 
     if contract_file and report_file:
         try:
             client = OpenAI(
@@ -152,5 +152,6 @@ if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
             st.error(f"⚠️ Произошла ошибка: {str(e)}")
     else:
         st.warning("⚠️ Пожалуйста, загрузите оба файла для начала сравнения.")
+
 
 
