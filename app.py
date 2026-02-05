@@ -45,19 +45,16 @@ st.title("🧛 Симулятор Вредного Заказчика")
 st.markdown("### Автоматизированный аудит соответствия Отчета и Контракта")
 
 with st.sidebar:
-    st.header("Настройки")
-    
-    # Получаем ключ строго из секретов
-    api_key_val = st.secrets.get("DEEPSEEK_API_KEY")
-    
-    if not api_key_val:
-        st.error("❌ Ошибка: Ключ DEEPSEEK_API_KEY не найден в Secrets!")
-        st.stop()
-    else:
-        st.success("✅ API-ключ подключен")
-        
-    selected_model = "https://api.deepseek.com"
-    st.info(f"Модель: {selected_model}")
+    st.header("Настройки AI")
+    # Список доступных моделей DeepSeek
+    model_option = st.selectbox(
+        "Выберите модель DeepSeek:",
+        ("deepseek-chat", "deepseek-reasoner"),
+        index=0,
+        help="chat — быстрая (V3), reasoner — умная (R1)"
+    )
+    # Сохраняем выбор в переменную
+    selected_model = model_option
 
 col1, col2 = st.columns(2)
 
@@ -72,7 +69,7 @@ if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
     bad_history = load_bad_history() 
     if contract_file and report_file:
         try:
-            client = OpenAI(
+            client = DeepSeek(
                 base_url="https://api.deepseek.com",
                 api_key=api_key_val, 
             )
@@ -110,13 +107,13 @@ if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
             # 3. Запрос к ИИ
             status.info("🧠 Шаг 3/4: Искусственный интеллект проводит аудит...")
             response = client.chat.completions.create(
-                model=selected_model,
+                model=selected_model,  # Код сам подставит то, что вы выбрали в меню
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_content}
                 ],
                 max_tokens=4000,
-                temperature=0.1  # <--- ДОБАВЛЕНО: Минимальная "фантазия", максимум точности
+                temperature=0.1
             )
             
             result_text = response.choices[0].message.content
