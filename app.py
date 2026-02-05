@@ -66,6 +66,20 @@ with col2:
 
 # --- ЛОГИКА АНАЛИЗА ---
 if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
+    api_key_val = st.secrets.get("DEEPSEEK_API_KEY") 
+    
+    # ПРОВЕРКА: Если ключа нет, выдать ошибку
+    if not api_key_val:
+        st.error("Ключ DEEPSEEK_API_KEY не найден в Secrets!")
+        st.stop()
+
+    if contract_file and report_file:
+        try:
+            # 2. ЗАТЕМ создаем клиента, используя этот ключ
+            client = OpenAI(
+                base_url="https://api.deepseek.com", 
+                api_key=api_key_val, 
+            )
     bad_history = load_bad_history() 
     if contract_file and report_file:
         try:
@@ -138,4 +152,5 @@ if st.button("🚀 ЗАПУСТИТЬ ТОТАЛЬНЫЙ АУДИТ"):
             st.error(f"⚠️ Произошла ошибка: {str(e)}")
     else:
         st.warning("⚠️ Пожалуйста, загрузите оба файла для начала сравнения.")
+
 
